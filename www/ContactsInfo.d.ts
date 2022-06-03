@@ -1,11 +1,11 @@
 interface Navigator {
     /** Provides access to the device contacts database. */
-    contactsPhoneNumbers: ContactsPhoneNumbers;
+    contactsInfo: ContactsInfo;
 }
 
-interface ContactsPhoneNumbers {
+interface ContactsInfo {
     /**
-     * The navigator.contactsPhoneNumbers.list method executes asynchronously, querying the device contacts database
+     * The navigator.contactsInfo.list method executes asynchronously, querying the device contacts database
      * and returning an array of Contact objects. The resulting objects are passed to the onSuccess
      * callback function specified by the onSuccess parameter.
      * @param onSuccess Success callback function invoked with the array of Contact objects returned from the database
@@ -24,8 +24,10 @@ interface Contact {
     lastName?: string;
     /** The name of this Contact, suitable for display to end users. */
     displayName?: string;
-    /** An array of all the contact's phone numbers. */
+    /** An object array of all the contact's phone numbers. */
     phoneNumbers?: ContactPhoneNumber[];
+    /** An string array of all the contact's email ids. */
+    emailIds?: string[];
 }
 
 declare var Contact: {
@@ -34,7 +36,8 @@ declare var Contact: {
         firstName?: string,
         LastName?: string,
         displayName?: string,
-        phoneNumbers?: ContactPhoneNumber[]): Contact
+        phoneNumbers?: ContactPhoneNumber[],
+        emailIds?: string[]): Contact
 };
 
 /** Contains different kinds of information about a Contact object's phone number. */

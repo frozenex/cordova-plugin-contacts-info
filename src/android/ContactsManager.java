@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Contacts.Data;
@@ -30,7 +31,7 @@ public class ContactsManager extends CordovaPlugin {
 
     public static final String ACTION_LIST_CONTACTS = "list";
 
-    private static final String LOG_TAG = "Contact Phone Numbers";
+    private static final String LOG_TAG = "Contacts Info";
 
     public ContactsManager() {}
 
@@ -62,8 +63,7 @@ public class ContactsManager extends CordovaPlugin {
         for (int r : grantResults) {
             if (r == PackageManager.PERMISSION_DENIED) {
                 Log.d(LOG_TAG, "Permission denied");
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR,
-                                                 "User has denied permission"));
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "User has denied permission"));
                 return;
             }
         }
@@ -79,7 +79,7 @@ public class ContactsManager extends CordovaPlugin {
     }
 
     private JSONArray list() {
-        JSONArray contacts = new JSONArray();
+        JSONArray contactsInfo = new JSONArray();
         ContentResolver cr = this.cordova.getActivity().getContentResolver();
         String[] projection = new String[] {
             ContactsContract.Contacts.DISPLAY_NAME,
@@ -91,30 +91,33 @@ public class ContactsManager extends CordovaPlugin {
             ContactsContract.CommonDataKinds.Phone.NUMBER,
             ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER,
             ContactsContract.CommonDataKinds.Phone.TYPE,
+            ContactsContract.CommonDataKinds.Email.ADDRESS,
             ContactsContract.Data.CONTACT_ID,
             ContactsContract.Data.MIMETYPE
         };
         // Retrieve only the contacts with a phone number at least
-        Cursor cursor = cr.query(ContactsContract.Data.CONTENT_URI,
-                projection,
-                ContactsContract.Contacts.HAS_PHONE_NUMBER + " = 1",
-                null,
-                ContactsContract.Data.CONTACT_ID + " ASC");
+        Cursor cursor = cr.query(
+            ContactsContract.Data.CONTENT_URI,
+            projection,
+            ContactsContract.Contacts.HAS_PHONE_NUMBER + " = 1",
+            null,
+            ContactsContract.Data.CONTACT_ID + " ASC"
+        );
 
-        contacts = populateContactArray(cursor);
+        contactsInfo = populateContactsInfoArray(cursor);
         return contacts;
     }
 
 
     /**
-     * Creates an array of contacts from the cursor you pass in
+     * Creates an array of contacts info from the cursor you pass in
      *
      * @param c            the cursor
      * @return             a JSONArray of contacts
      */
-    private JSONArray populateContactArray(Cursor c) {
+    private JSONArray populateContactsInfoArray(Cursor c) {
 
-        JSONArray contacts = new JSONArray();
+        JSONArray contactsInfo = new JSONArray();
 
         String contactId = null;
         String oldContactId = null;
@@ -123,6 +126,7 @@ public class ContactsManager extends CordovaPlugin {
 
         JSONObject contact = new JSONObject();
         JSONArray phones = new JSONArray();
+        String[] emails = new String[1];
 
         try {
             if (c.getCount() > 0) {
@@ -136,10 +140,12 @@ public class ContactsManager extends CordovaPlugin {
                     if (!oldContactId.equals(contactId)) {
                         // Populate the Contact object with it's arrays and push the contact into the contacts array
                         contact.put("phoneNumbers", phones);
-                        contacts.put(contact);
+                        contact.put("emailIds", emails);
+                        contactsInfo.put(contact);
                         // Clean up the objects
                         contact = new JSONObject();
                         phones = new JSONArray();
+                        emails = new String[1];
 
                         // Set newContact to true as we are starting to populate a new contact
                         newContact = true;
@@ -162,6 +168,8 @@ public class ContactsManager extends CordovaPlugin {
                     }
                     else if (mimetype.equals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
                         phones.put(getPhoneNumber(c));
+                    }else if (mimetype.equals(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
+                        emails[0] = getEmailAddress(c);
                     }
 
                     // Set the old contact ID
@@ -169,13 +177,14 @@ public class ContactsManager extends CordovaPlugin {
                 }
                 // Push the last contact into the contacts array
                 contact.put("phoneNumbers", phones);
-                contacts.put(contact);
+                contact.put("emailIds", emails);
+                contactsInfo.put(contact);
             }
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
         }
         c.close();
-        return contacts;
+        return contactsInfo;
     }
 
     /**
@@ -193,7 +202,6 @@ public class ContactsManager extends CordovaPlugin {
         return phoneNumber;
     }
 
-
     /**
      * Retrieve the type of the phone number based on the type code
      * @param type the code of the type
@@ -209,5 +217,14 @@ public class ContactsManager extends CordovaPlugin {
             label = "WORK";
 
         return label;
+    }
+
+    /**
+     * Retrieve email address
+     * @param cursor the current database row
+     * @return a String representing an email address
+     */
+    private String getEmailAddress(Cursor cursor) {
+        return cursor.getString(cursor.getColumnIndex(Email.ADDRESS));
     }
 }

@@ -17,10 +17,10 @@
  under the License.
  */
 
-#import "CDVContactsPhoneNumbers.h"
+#import "CDVContactsInfo.h"
 #import <UIKit/UIKit.h>
 
-@implementation CDVContactsPhoneNumbers
+@implementation CDVContactsInfo
 
 - (void)list:(CDVInvokedUrlCommand*)command
 {
@@ -29,7 +29,7 @@
     [self.commandDelegate runInBackground:^{
 
         CDVAddressBookPhoneNumberHelper* abHelper = [[CDVAddressBookPhoneNumberHelper alloc] init];
-        CDVContactsPhoneNumbers* __weak weakSelf = self;
+        CDVContactsInfo* __weak weakSelf = self;
 
         [abHelper createAddressBook: ^(ABAddressBookRef addrBook) {
             if (addrBook == NULL) { // permission was denied or other error - return error
@@ -38,7 +38,7 @@
                 return;
             }
 
-            NSMutableArray* contactsWithPhoneNumbers = [[NSMutableArray alloc] init];
+            NSMutableArray* contactsInfo = [[NSMutableArray alloc] init];
 
             CFArrayRef records = ABAddressBookCopyArrayOfAllPeople(addrBook);
             NSArray *phoneContacts = (__bridge NSArray*)records;
@@ -48,7 +48,9 @@
                 ABRecordRef ref = (__bridge ABRecordRef)[phoneContacts objectAtIndex:i];
 
                 ABMultiValueRef phones = ABRecordCopyValue(ref, kABPersonPhoneProperty);
+                ABMultiValueRef emails = ABRecordCopyValue(ref, kABPersonEmailProperty);
                 int countPhones = ABMultiValueGetCount(phones);
+                int countEmails = ABMultiValueGetCount(emails);
                 //we skip users with no phone numbers
                 if (countPhones > 0) {
                     NSMutableArray* phoneNumbersArray = [[NSMutableArray alloc] init];
@@ -92,19 +94,26 @@
                         if (phoneTypeLabelRef) CFRelease(phoneTypeLabelRef);
                     }
 
+                    NSMutableArray* emailIdsArray = [[NSMutableArray alloc] init];
+                    for(CFIndex j = 0; j < countEmails; j++) {
+                        NSString *emailId = (__bridge NSString *) ABMultiValueCopyValueAtIndex(emails, j);
+                        // adding this email ids to the list of emails for this user
+                        [emailIdsArray addObject:emailId];
+                    }
+
                     // creating the contact object
                     NSString *displayName;
 
                     NSString *firstName = (__bridge_transfer NSString*)ABRecordCopyValue(ref, kABPersonFirstNameProperty);
-                    if (!firstName)
+                    if (!firstName) {
                         firstName = @"";
+                    }
                     displayName = firstName;
 
                     NSString *middleName = (__bridge_transfer NSString*)ABRecordCopyValue(ref, kABPersonMiddleNameProperty);
                     if (!middleName) {
                         middleName = @"";
-                    }
-                    else {
+                    } else {
                         if (displayName.length)
                             displayName = [displayName stringByAppendingString:@" "];
                         displayName = [displayName stringByAppendingString:middleName];
@@ -113,10 +122,10 @@
                     NSString *lastName = (__bridge_transfer NSString*)ABRecordCopyValue(ref, kABPersonLastNameProperty);
                     if (!lastName) {
                         lastName = @"";
-                    }
-                    else {
-                        if (displayName.length)
+                    } else {
+                        if (displayName.length) {
                             displayName = [displayName stringByAppendingString:@" "];
+                        }
                         displayName = [displayName stringByAppendingString:lastName];
                     }
 
@@ -131,14 +140,16 @@
                     [contactDictionary setObject: lastName forKey:@"lastName"];
                     [contactDictionary setObject: middleName forKey:@"middleName"];
                     [contactDictionary setObject: phoneNumbersArray forKey:@"phoneNumbers"];
+                    [contactDictionary setObject: emailIdsArray forKey:@"emailIds"];
 
                     //add the contact to the list to return
-                    [contactsWithPhoneNumbers addObject:contactDictionary];
+                    [contactsInfo addObject:contactDictionary];
                 }
                 CFRelease(phones);
+                CFRelease(emails);
             }
 
-            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:contactsWithPhoneNumbers];
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:contactsInfo];
             [weakSelf.commandDelegate sendPluginResult:result callbackId:callbackId];
 
             if (addrBook) {
