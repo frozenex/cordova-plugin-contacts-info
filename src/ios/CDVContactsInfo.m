@@ -54,7 +54,6 @@
                 //we skip users with no phone numbers
                 if (countPhones > 0) {
                     NSMutableArray* phoneNumbersArray = [[NSMutableArray alloc] init];
-
                     for(CFIndex j = 0; j < countPhones; j++) {
                         CFStringRef phoneNumberRef = ABMultiValueCopyValueAtIndex(phones, j);
                         CFStringRef phoneTypeLabelRef = ABMultiValueCopyLabelAtIndex(phones, j);
@@ -96,9 +95,11 @@
 
                     NSMutableArray* emailIdsArray = [[NSMutableArray alloc] init];
                     for(CFIndex j = 0; j < countEmails; j++) {
-                        NSString *emailId = (__bridge NSString *) ABMultiValueCopyValueAtIndex(emails, j);
+                        CFStringRef emailIdRef = ABMultiValueCopyLabelAtIndex(emails, j);
+                        NSString *emailId = (__bridge NSString *) emailIdRef;
                         // adding this email ids to the list of emails for this user
                         [emailIdsArray addObject:emailId];
+                        if (emailIdRef) CFRelease(emailIdRef);
                     }
 
                     // creating the contact object

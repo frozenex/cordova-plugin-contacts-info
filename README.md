@@ -45,8 +45,11 @@ A full example could be:
          console.log(contacts[i].id + " - " + contacts[i].displayName);
          for(var j = 0; j < contacts[i].phoneNumbers.length; j++) {
             var phone = contacts[i].phoneNumbers[j];
+            console.log("===> " + phone.type + "  " + phone.number + " (" + phone.normalizedNumber+ ")");
+         }
+         for(var j = 0; j < contacts[i].emailIds.length; j++) {
             var emailId = contacts[i].emailIds[j];
-            console.log("===> " + phone.type + "  " + phone.number + " (" + phone.normalizedNumber+ ")" + emailId);
+            console.log("===> " + emailId);
          }
       }
    }, function(error) {

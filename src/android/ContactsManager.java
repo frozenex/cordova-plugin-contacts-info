@@ -1,4 +1,4 @@
-package com.dbaq.cordova.contactsPhoneNumbers;
+package com.frozenex.cordova.contactsInfo;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -7,19 +7,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.content.ContentResolver;
-import android.content.Intent;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Email;
-import android.provider.ContactsContract.CommonDataKinds.StructuredName;
-import android.provider.ContactsContract.Contacts;
-import android.provider.ContactsContract.Contacts.Data;
 import android.util.Log;
-import static android.Manifest.permission.READ_CONTACTS;
 
 public class ContactsManager extends CordovaPlugin {
 
@@ -95,6 +89,7 @@ public class ContactsManager extends CordovaPlugin {
             ContactsContract.Data.CONTACT_ID,
             ContactsContract.Data.MIMETYPE
         };
+        
         // Retrieve only the contacts with a phone number at least
         Cursor cursor = cr.query(
             ContactsContract.Data.CONTENT_URI,
@@ -105,7 +100,7 @@ public class ContactsManager extends CordovaPlugin {
         );
 
         contactsInfo = populateContactsInfoArray(cursor);
-        return contacts;
+        return contactsInfo;
     }
 
 
@@ -126,7 +121,7 @@ public class ContactsManager extends CordovaPlugin {
 
         JSONObject contact = new JSONObject();
         JSONArray phones = new JSONArray();
-        String[] emails = new String[1];
+        JSONArray emails = new JSONArray();
 
         try {
             if (c.getCount() > 0) {
@@ -145,7 +140,7 @@ public class ContactsManager extends CordovaPlugin {
                         // Clean up the objects
                         contact = new JSONObject();
                         phones = new JSONArray();
-                        emails = new String[1];
+                        emails = new JSONArray();
 
                         // Set newContact to true as we are starting to populate a new contact
                         newContact = true;
@@ -165,11 +160,10 @@ public class ContactsManager extends CordovaPlugin {
                         contact.put("middleName", c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME)));
                         contact.put("displayName", c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)));
                         contact.put("thumbnail", c.getString(c.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI)));
-                    }
-                    else if (mimetype.equals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
+                    } else if (mimetype.equals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
                         phones.put(getPhoneNumber(c));
-                    }else if (mimetype.equals(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
-                        emails[0] = getEmailAddress(c);
+                    } else if (mimetype.equals(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
+                        emails.put(getEmailAddress(c));
                     }
 
                     // Set the old contact ID
