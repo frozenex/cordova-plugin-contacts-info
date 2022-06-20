@@ -93,13 +93,32 @@
                         if (phoneTypeLabelRef) CFRelease(phoneTypeLabelRef);
                     }
 
-                    NSMutableArray* emailIdsArray = [[NSMutableArray alloc] init];
-                    for(CFIndex j = 0; j < countEmails; j++) {
-                        CFStringRef emailIdRef = ABMultiValueCopyLabelAtIndex(emails, j);
-                        NSString *emailId = (__bridge NSString *) emailIdRef;
-                        // adding this email ids to the list of emails for this user
-                        [emailIdsArray addObject:emailId];
-                        if (emailIdRef) CFRelease(emailIdRef);
+                    NSMutableArray* emailsArray = [[NSMutableArray alloc] init];
+                    if (countEmails > 0) {
+                        for(CFIndex j = 0; j < countEmails; j++) {
+                            CFStringRef emailRef = ABMultiValueCopyValueAtIndex(emails, j);
+                            CFStringRef emailTypeLabelRef = ABMultiValueCopyLabelAtIndex(emails, j);
+                            NSString *email = (__bridge NSString *) emailRef;
+                            NSString *emailLabel = @"OTHER";
+                            
+                            if (emailTypeLabelRef) {
+                                if (CFEqual(emailTypeLabelRef, kABWorkLabel)) {
+                                    emailLabel = @"WORK";
+                                } else if (CFEqual(emailTypeLabelRef, kABHomeLabel)) {
+                                    emailLabel = @"HOME";
+                                }
+                            }
+                            
+                            // creating the nested element with the email details
+                            NSMutableDictionary* emailDictionary = [NSMutableDictionary dictionaryWithCapacity:1];
+                            [emailDictionary setObject: email forKey:@"address"];
+                            [emailDictionary setObject: emailLabel forKey:@"type"];
+                            // adding this email to the list of emails for this user
+                            [emailsArray addObject:emailDictionary];
+
+                            if (emailRef) CFRelease(emailRef);
+                            if (emailTypeLabelRef) CFRelease(emailTypeLabelRef);
+                        }
                     }
 
                     // creating the contact object
@@ -141,7 +160,7 @@
                     [contactDictionary setObject: lastName forKey:@"lastName"];
                     [contactDictionary setObject: middleName forKey:@"middleName"];
                     [contactDictionary setObject: phoneNumbersArray forKey:@"phoneNumbers"];
-                    [contactDictionary setObject: emailIdsArray forKey:@"emailIds"];
+                    [contactDictionary setObject: emailsArray forKey:@"emails"];
 
                     //add the contact to the list to return
                     [contactsInfo addObject:contactDictionary];

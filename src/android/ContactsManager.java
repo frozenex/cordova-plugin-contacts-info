@@ -135,7 +135,7 @@ public class ContactsManager extends CordovaPlugin {
                     if (!oldContactId.equals(contactId)) {
                         // Populate the Contact object with it's arrays and push the contact into the contacts array
                         contact.put("phoneNumbers", phones);
-                        contact.put("emailIds", emails);
+                        contact.put("emails", emails);
                         contactsInfo.put(contact);
                         // Clean up the objects
                         contact = new JSONObject();
@@ -163,7 +163,7 @@ public class ContactsManager extends CordovaPlugin {
                     } else if (mimetype.equals(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
                         phones.put(getPhoneNumber(c));
                     } else if (mimetype.equals(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
-                        emails.put(getEmailAddress(c));
+                        emails.put(getEmail(c));
                     }
 
                     // Set the old contact ID
@@ -171,7 +171,7 @@ public class ContactsManager extends CordovaPlugin {
                 }
                 // Push the last contact into the contacts array
                 contact.put("phoneNumbers", phones);
-                contact.put("emailIds", emails);
+                contact.put("emails", emails);
                 contactsInfo.put(contact);
             }
         } catch (JSONException e) {
@@ -209,16 +209,32 @@ public class ContactsManager extends CordovaPlugin {
             label = "MOBILE";
         else if (type == Phone.TYPE_WORK)
             label = "WORK";
-
         return label;
     }
 
     /**
-     * Retrieve email address
+     * Create a email JSONObject
      * @param cursor the current database row
-     * @return a String representing an email address
+     * @return a JSONObject representing a email
      */
-    private String getEmailAddress(Cursor cursor) {
-        return cursor.getString(cursor.getColumnIndex(Email.ADDRESS));
+    private JSONObject getEmail(Cursor cursor) throws JSONException {
+        JSONObject email = new JSONObject();
+        email.put("address", cursor.getString(cursor.getColumnIndex(Email.ADDRESS)));
+        email.put("type", getEmailTypeLabel(cursor.getInt(cursor.getColumnIndex(Email.TYPE))));
+        return email;
+    }
+
+    /**
+     * Retrieve the type of the email based on the type code
+     * @param type the code of the type
+     * @return a string in caps representing the type of email
+     */
+    private String getEmailTypeLabel(int type) {
+        String label = "OTHER";
+        if (type == Email.TYPE_HOME)
+            label = "HOME";
+        else if (type == Email.TYPE_WORK)
+            label = "WORK";
+        return label;
     }
 }

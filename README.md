@@ -27,7 +27,7 @@ Since iOS 10 it's mandatory to provide an usage description in the `info.plist` 
 ```
 
 ## Using the plugin ##
-The plugin creates the object `navigator.contactsPhoneNumbers` with the methods
+The plugin creates the object `navigator.contactsInfo` with the methods
 
   `list(success, fail)`
   
@@ -45,11 +45,11 @@ A full example could be:
          console.log(contacts[i].id + " - " + contacts[i].displayName);
          for(var j = 0; j < contacts[i].phoneNumbers.length; j++) {
             var phone = contacts[i].phoneNumbers[j];
-            console.log("===> " + phone.type + "  " + phone.number + " (" + phone.normalizedNumber+ ")");
+            console.log("PHONE => " + phone.type + " : " + phone.number + " (" + phone.normalizedNumber+ ")");
          }
-         for(var j = 0; j < contacts[i].emailIds.length; j++) {
-            var emailId = contacts[i].emailIds[j];
-            console.log("===> " + emailId);
+         for(var j = 0; j < contacts[i].emails.length; j++) {
+            var email = contacts[i].emails[j];
+            console.log("EMAIL => " + email.type + " : " + email.address);
          }
       }
    }, function(error) {
@@ -67,6 +67,7 @@ Each entry contains:
    * the unique contact id
    * the name of the contact (first name, last name, display name)
    * an array containing the number, the normalizedNumber and the type of the number (```WORK```, ```MOBILE```, ```HOME``` or ```OTHER```)
+   * an array containing the email address and the type of the email (```WORK```, ```HOME``` or ```OTHER```)
 
 Here is a sample of what you can get:
 
@@ -87,7 +88,13 @@ Here is a sample of what you can get:
             "normalizedNumber": "(415) 555-3695",
             "type": "OTHER"
         }],
-        "emailIds": ["email@example.com"]
+        "emails": [{
+            "address": "home@gmail.com",
+            "type": "HOME"
+        }, {
+            "address": "other@gmail.com",
+            "type": "OTHER"
+        }],
     }, {
         "id": "2",
         "firstName": "Daniel",
@@ -108,7 +115,13 @@ Here is a sample of what you can get:
             "normalizedNumber": "(408) 555-3514",
             "type": "OTHER"
         }],
-        "emailIds": ["email@example.com"]
+        "emails": [{
+            "address": "work@gmail.com",
+            "type": "WORK"
+        }, {
+            "address": "other@gmail.com",
+            "type": "OTHER"
+        }],
     }, {
         "id": "3",
         "firstName": "John",
@@ -125,7 +138,7 @@ Here is a sample of what you can get:
             "normalizedNumber": "888-555-1212",
             "type": "HOME"
         }],
-        "emailIds": ["email@example.com"]
+        "emails": []
     }]
 ```
 

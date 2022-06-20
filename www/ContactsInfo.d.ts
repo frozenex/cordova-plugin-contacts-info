@@ -26,8 +26,8 @@ interface Contact {
     displayName?: string;
     /** An object array of all the contact's phone numbers. */
     phoneNumbers?: ContactPhoneNumber[];
-    /** An string array of all the contact's email ids. */
-    emailIds?: string[];
+    /** An object array of all the contact's emails. */
+    emails?: ContactEmail[];
 }
 
 declare var Contact: {
@@ -37,7 +37,7 @@ declare var Contact: {
         LastName?: string,
         displayName?: string,
         phoneNumbers?: ContactPhoneNumber[],
-        emailIds?: string[]): Contact
+        emails?: ContactEmail[]): Contact
 };
 
 /** Contains different kinds of information about a Contact object's phone number. */
@@ -50,9 +50,23 @@ interface ContactPhoneNumber {
     type?: string;
 }
 
+/** Contains different kinds of information about a Contact object's email. */
+interface ContactEmail {
+    /** The contact email address. */
+    address?: string;
+    /** The contact email type (WORK, HOME or OTHER). */
+    type?: string;
+}
+
 declare var ContactPhoneNumber: {
     /** Constructor for ContactPhoneNumber object */
     new (number?: string,
-        normalizedNumber?: string,
-        type?: string): ContactPhoneNumber
+         normalizedNumber?: string,
+         type?: string): ContactPhoneNumber
+};
+
+declare var ContactEmail: {
+    /** Constructor for ContactEmail object */
+    new (address?: string,
+         type?: string): ContactEmail
 };

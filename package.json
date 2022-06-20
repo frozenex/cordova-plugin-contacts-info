@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-contacts-info",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Cordova Plugin to List Contacts Phone Numbers, Email Address",
   "cordova": {
     "id": "cordova-plugin-contacts-info",
@@ -27,7 +27,7 @@
   "scripts": {
     "publish": "npm publish --access public"
   },
-  "author": "Frozenex",
+  "author": "Frozenex <arun.frozenex@gmail.com>",
   "license": "Apache 2.0",
   "bugs": {
     "url": "https://github.com/frozenex/cordova-plugin-contacts-info/issues"
